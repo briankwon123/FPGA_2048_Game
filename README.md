@@ -1,15 +1,17 @@
 # FPGA_2048_Game
 2048 Game created via Verilog, loaded on an FPGA board and VGA monitor.
 
-Contributors: Bradley Schulz, Brian kwon
+CONTRIBUTORS: Bradley Schulz, Brian kwon
  
-Introduction:
+INTRODUCTION:
+
 We implemented the popular game “2048” using an FPGA board and VGA display. 2048 is a game that has a 4x4 grid, in which each tile either has a numerical value or is empty. The player is able to move up, down, left, or right and that each movement causes all non-empty tiles on the grid to shift to that direction, filling in the empty spaces and combining adjacent tiles of the same value. Two tiles of the same value can be combined to result in one tile, where the new value becomes the sum of the two values. Another big aspect about the game is that all values are powers of 2 starting with the value 2.
  
 Whenever the game is reset, the board randomly gives a tile a starting value of either 2 or 4 with a higher probability of adding a 2. Also, whenever the player makes a move, an empty tile after the move is randomly picked and the value of 2 or 4 is placed there. The game is over when there are no more possible moves, meaning that there are no empty tiles left on the board and no two adjacent tiles are of equivalent value. At this point, the player can choose to reset the board and start over to try to get a higher score. The score is calculated as the sum of all values on the board at that time. The user’s goal is to make this score as high as possible before there are no more possible moves by repeatedly combining equivalent tiles to create tiles of higher and higher value.
  
 
-Design description:
+DESIGN:
+
 We decomposed our design into the following modules:
 Buttons to debounce and process the button inputs
 Movement module to move the tile values based on the button input
@@ -43,7 +45,9 @@ Each tile takes its current value as an input and is responsible for giving the 
 
 All these tile and digit modules are parameterized, so they can be reused but correspond to different locations on the screen.
  
-Simulation documentation:
+ 
+SIMULATION DOCUMENTATION:
+
 Since the display output is very messy and changes with each successive pixel, verifying the operation of the display modules in simulation was not worth the effort. Instead, we wrote a top module (display_top.v)  that just displays a range of hard-coded values on the grid to verify that all the colors and numbers display properly. Testing each version of the code took longer than simply simulating it because of the need to compile all the modules, but the overall debugging time was less than if we had to write a testbench and analyze waveforms to verify that each of the 300,000+ pixels were being driven correctly. During this testing, we ran into a few issues with correctly indexing the location on the screen and getting the padding correct between tiles and digits, but all the issues were manageable and we were able to get the display working with just under 2 hours of testing.
  
 We tested the random number generator with its own designated testbench. This testbench creates a sample set of board values, and then uses a verilog task to simulate three button pulses (since that is the output for the button modules for one user button press) to cause the module to generate a new random value. Then, this task waits until the “waiting” output goes low before exiting the task. The testbench calls this task several times before exiting to ensure that the generator always fills in empty grid tiles.
@@ -68,7 +72,8 @@ Lastly, below is a screenshot of our design summary report:
 ![Design Summary Report](/Images/Image6.png)
 
 
-Conclusion:
+CONCLUSION:
+
 Our project implements the game “2048” with 5 button inputs, the game displayed on a 640x480 VGA display, and the score shown on a 4 digit seven-segment display. We modularized the display by creating individual tiles in the board and then four digits within those tiles to display the value of the tile. To register movements, there is a module to register the button presses and update the display accordingly. Then, a pseudo-random number generator adds a new value to an empty tile in the board. The game is over when all the tiles are full and no moves remain.
  
 We encountered difficulties in driving the VGA display, since all the computations happen very fast and there is a lot of detail that must be displayed in the final image. Translating the button inputs to board updates was also difficult because there are a lot of possible movements and numerous different cases to consider. Finding an efficient and effective way to register all the movements proved quite challenging.
