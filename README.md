@@ -20,7 +20,8 @@ Seven-segment display driver to show the score on the 7-segment display
  
 The overall architecture is shown in the figure below, and more detailed descriptions of each module follow.
 
- 
+![Module Block Diagram](/Images/Image1)
+
 The button module takes the noisy button input and outputs three 1 clock pulses after the button has been high for a specified period of time. Three clock pulses are generated to trigger 3 moves, as three single movements on the board corresponds to one complete update in the game (described in more detail later). Decouncing—waiting for the button to be high for a sufficient amount of time—is necessary because of imperfections in the electrical contacts within the button which can cause the unprocessed button output to oscillate before stabilizing. This creates multiple positive edges, which could trigger unnecessary updates several times on accident.
  
 The tile values are represented as a 64-bit vector, with groups of 4 bits corresponding to one tile. Since each tile’s value is always a power or 2, the value of each tile can be stored as that power of 2. The final tilevals vector is all the tile’s exponents concatenated together in a 64-bit vector with the rows ordered from left to right, top to bottom. This means that the lowest four bits are the top left and the highest 4 bits are the bottom right.
@@ -34,10 +35,11 @@ The four digit seven-segment display on the Nexys3 board shows the user’s curr
  
 Driving the VGA is a fairly complicated task, as the output is driven pixel by pixel on the final display. To break it down into more manageable pieces, the grid was broken down into individual tiles, with each tile containing 4 digits. The tiles are parameterized modules, where the parameters are the x and y indices in the grid (x and y range from 0 to 3 since it is a 4x4 grid). The overall display module instantiates all 16 tiles and sets the final output driving the display equal to the output from each tile based on what pixel is currently being driven. It also sets the screen to be gray in areas not corresponding to any tiles.
  
-
+![Tile Pixels](/Images/Image2)
  
 Each tile takes its current value as an input and is responsible for giving the tile its correct background color and displaying the numerical value of the tile on the screen in up to 4 digits. It creates these digits using another module responsible for displaying a digit. This digit module is modeled after a seven-segment display and sets the output to white when the current pixel location corresponds to a segment that should be turned on, and black otherwise. The tile module combines the outputs of all 4 digits, adds the background color in pixels that are not being driven by any of the digits, and then sends the pixel values back to the main display module.
  
+![Digits Pixels](/Images/Image3)
 
 All these tile and digit modules are parameterized, so they can be reused but correspond to different locations on the screen.
  
@@ -48,21 +50,23 @@ We tested the random number generator with its own designated testbench. This te
  
 Through testing, we found issues with indexing to the correct cell, the generator not being able to reliably find an empty cell and getting stuck, and new values overwriting old ones. We fixed all these issues by ensuring the module correctly indexes into the input values to make sure it correctly examines each cell.
 
+![Waveform 1](/Images/Image4)
  
 The screenshot above shows simulation generation of pseudo-random numbers. After three button pulses, the “gen_active” signal goes high until a new value is generated and “out_vals” changes. This waveform also demonstrates that new values are only added where the value was previously “0” and that new values are only “1” or “2”. Note that each hexadecimal digit in the bottom two signals is the power of 2 of a single tile.
  
 The gamestate calculation module was also tested with its own dedicated testbench. This testbench simulates setting the board to different configurations and verifying that the gamestate calculator outputs the correct values for each configuration. This involves verifying two things:
-The score is correctly calculated as the sum of all the tiles on the board
-If there are no available moves, it sets its “game_over” output high
- 
+ 1. The score is correctly calculated as the sum of all the tiles on the board
+ 2. If there are no available moves, it sets its “game_over” output high
+
+![Waveform 2](/Images/Image5) 
 
 The waveforms above demonstrate both requirements working properly. The “test_vals” register represents the state of the tiles, where each hexadecimal digit is the the power of 2 of the tile’s value and each group of 4 consecutive values corresponds to one row. The “game_over” signal goes high once there are no more available moves, which is the case with the tile values set at 240ns and 320ns into simulation. The testbench checks the score of the game by calculating the correct score independent from the gamestate module so it can be compared to the output from the gamestate module. 
  
 Finally, the movement module was also tested using example board and tile values. A button value was pulsed and the output board was checked manually to make sure that the values all ended up in the correct spot after the update.
  
 Lastly, below is a screenshot of our design summary report:
+![Design Summary Report](/Images/Image6)
 
- 
 
 Conclusion:
 Our project implements the game “2048” with 5 button inputs, the game displayed on a 640x480 VGA display, and the score shown on a 4 digit seven-segment display. We modularized the display by creating individual tiles in the board and then four digits within those tiles to display the value of the tile. To register movements, there is a module to register the button presses and update the display accordingly. Then, a pseudo-random number generator adds a new value to an empty tile in the board. The game is over when all the tiles are full and no moves remain.
